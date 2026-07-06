@@ -17,9 +17,9 @@ using Quaver.API.Maps.AutoMod.Issues.ScrollVelocities;
 using Quaver.API.Maps.AutoMod.Issues.TimingGroups;
 using Quaver.API.Maps.AutoMod.Issues.TimingPoints;
 using Quaver.API.Maps.Structures;
+using Quaver.API.Helpers;
 using Quaver.API.Replays;
 using Quaver.API.Replays.Virtual;
-using SixLabors.ImageSharp;
 
 namespace Quaver.API.Maps.AutoMod
 {
@@ -445,16 +445,11 @@ namespace Quaver.API.Maps.AutoMod
             if (new FileInfo(path).Length > maxSize)
                 Issues.Add(new AutoModIssueImageTooLarge(item, maxSize));
 
-            try
-            {
-                using (var image = Image.Load(path))
-                    if (image.Width < minWidth || image.Height < minHeight || image.Width > maxWidth || image.Height > maxHeight)
-                        Issues.Add(new AutoModIssueImageResolution(item, minWidth, minHeight, maxWidth, maxHeight));
-            }
-            catch (Exception)
-            {
-                // ignored
-            }
+            if (!ImageHelper.TryGetDimensions(path, out var width, out var height))
+                return;
+
+            if (width < minWidth || height < minHeight || width > maxWidth || height > maxHeight)
+                Issues.Add(new AutoModIssueImageResolution(item, minWidth, minHeight, maxWidth, maxHeight));
         }
 
         /// <summary>
