@@ -244,16 +244,48 @@ namespace Quaver.API.Tests.AutoMods
             var autoMod = new AutoMod(Qua.Parse("./AutoMods/Resources/high-bitrate.qua", false));
             autoMod.Run();
 
-            Assert.Contains(autoMod.Issues, x => x is AutoModIssueAudioBitrate);
+            Assert.Contains(autoMod.Issues, x => x is AutoModIssueAudioBitrate issue
+                                                       && issue.AudioFormat == "MP3"
+                                                       && issue.MaxBitrate == AutoMod.MaxMp3AudioBitrate);
         }
 
         [Fact]
-        public void DetectWrongAudioFormat()
+        public void AllowSupportedOggAudio()
         {
             var autoMod = new AutoMod(Qua.Parse("./AutoMods/Resources/wrong-audio-format.qua", false));
             autoMod.Run();
 
+            Assert.NotNull(autoMod.AudioTrackInfo);
+            Assert.DoesNotContain(autoMod.Issues, x => x is AutoModIssueAudioFormat);
+            Assert.DoesNotContain(autoMod.Issues, x => x is AutoModIssueAudioBitrate);
+        }
+
+        [Fact]
+        public void DetectOggAudioBitrateTooHigh()
+        {
+            var qua = Qua.Parse("./AutoMods/Resources/wrong-audio-format.qua", false);
+            qua.AudioFile = "high-bitrate.ogg";
+
+            var autoMod = new AutoMod(qua);
+            autoMod.Run();
+
+            Assert.DoesNotContain(autoMod.Issues, x => x is AutoModIssueAudioFormat);
+            Assert.Contains(autoMod.Issues, x => x is AutoModIssueAudioBitrate issue
+                                                       && issue.AudioFormat == "OGG"
+                                                       && issue.MaxBitrate == AutoMod.MaxOggAudioBitrate);
+        }
+
+        [Fact]
+        public void DetectUnsupportedAudioFormat()
+        {
+            var qua = Qua.Parse("./AutoMods/Resources/wrong-audio-format.qua", false);
+            qua.AudioFile = "unsupported.wav";
+
+            var autoMod = new AutoMod(qua);
+            autoMod.Run();
+
             Assert.Contains(autoMod.Issues, x => x is AutoModIssueAudioFormat);
+            Assert.DoesNotContain(autoMod.Issues, x => x is AutoModIssueAudioBitrate);
         }
 
         [Fact]
