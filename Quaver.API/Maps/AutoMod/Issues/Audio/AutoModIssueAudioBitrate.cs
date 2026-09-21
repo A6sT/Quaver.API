@@ -4,7 +4,20 @@
     {
         public override AutoModIssueCategory Category { get; protected set; } = AutoModIssueCategory.Files;
 
-        public AutoModIssueAudioBitrate() : base(AutoModIssueLevel.Ranking)
-            => Text = $"The mp3's bitrate must be 192kbps or lower.";
+        public string AudioFormat { get; }
+
+        public int MaxBitrate { get; }
+
+        public AutoModIssueAudioBitrate()
+            : this("MP3", global::Quaver.API.Maps.AutoMod.AutoMod.MaxMp3AudioBitrate)
+        {
+        }
+
+        public AutoModIssueAudioBitrate(string audioFormat, int maxBitrate) : base(AutoModIssueLevel.Ranking)
+        {
+            AudioFormat = audioFormat;
+            MaxBitrate = maxBitrate;
+            Text = $"The {audioFormat} audio bitrate must be {maxBitrate}kbps or lower.";
+        }
     }
 }

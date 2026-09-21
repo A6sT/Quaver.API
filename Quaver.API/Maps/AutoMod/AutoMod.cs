@@ -74,6 +74,16 @@ namespace Quaver.API.Maps.AutoMod
         public const int MaxBannerFileSize = 2000000;
 
         /// <summary>
+        ///     The maximum allowed bitrate for MP3 audio files.
+        /// </summary>
+        public const int MaxMp3AudioBitrate = 192;
+
+        /// <summary>
+        ///     The maximum allowed bitrate for OGG audio files.
+        /// </summary>
+        public const int MaxOggAudioBitrate = 208;
+
+        /// <summary>
         /// </summary>
         /// <param name="qua"></param>
         public AutoMod(Qua qua) => Qua = qua;
@@ -480,14 +490,21 @@ namespace Quaver.API.Maps.AutoMod
         /// </summary>
         private void DetectAudioFileIssues()
         {
+            var extension = Path.GetExtension(Qua.AudioFile)?.ToLowerInvariant();
+
+            if (extension != ".mp3" && extension != ".ogg")
+            {
+                Issues.Add(new AutoModIssueAudioFormat());
+                return;
+            }
+
             if (AudioTrackInfo == null)
                 return;
 
-            if (Path.GetExtension(AudioTrackInfo.Path).ToLower() != ".mp3")
-                Issues.Add(new AutoModIssueAudioFormat());
+            var maxBitrate = extension == ".ogg" ? MaxOggAudioBitrate : MaxMp3AudioBitrate;
 
-            if (AudioTrackInfo.Bitrate > 192)
-                Issues.Add(new AutoModIssueAudioBitrate());
+            if (AudioTrackInfo.Bitrate > maxBitrate)
+                Issues.Add(new AutoModIssueAudioBitrate(extension.Substring(1).ToUpperInvariant(), maxBitrate));
         }
     }
 }
